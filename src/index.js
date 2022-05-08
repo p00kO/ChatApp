@@ -16,9 +16,29 @@ app.get('', (req,res) => {
   res.sendFile('index.html')
 })
 
-io.on('connection', () => {
+// let count =0;
+
+io.on('connection', (socket) => {
   console.log('New Websocket connection')
+  const mes = "Welcome!"
+  socket.emit('message', mes)  
+  socket.on('sendMessage', (newMes) =>{
+    io.emit('message', newMes)
+  })  
+  // // setInterval(()=>{    
+  // //   socket.emit('countUpdated', count)
+  // // }, 1000)
+  // socket.emit('countUpdated', count)
+  // socket.on('increment',()=>{
+  //   count++
+  //   socket.emit('countUpdated', count)
+  //   io.emit('countUpdated',count)
+  // })
 })
+
+
+
+
 
 server.listen(port, () => {
   console.log('Listening on port 3000')
