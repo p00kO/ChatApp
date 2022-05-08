@@ -16,15 +16,38 @@ app.get('', (req,res) => {
   res.sendFile('index.html')
 })
 
-// let count =0;
-
 io.on('connection', (socket) => {
   console.log('New Websocket connection')
   const mes = "Welcome!"
   socket.emit('message', mes)  
+  
+  socket.broadcast.emit('message', 'A new user has joined!')
+
   socket.on('sendMessage', (newMes) =>{
     io.emit('message', newMes)
-  })  
+  })
+  
+  socket.on('sendLocation', (newLoc) => {
+    //console.log(newLoc)
+    let val = `https://google.com/maps?=$${newLoc.lat},${newLoc.long}`   
+    io.emit('message', val)
+  })
+
+  socket.on('disconnect', () =>{
+    io.emit('message', "User just left :-(")
+  })
+})
+
+server.listen(port, () => {
+  console.log('Listening on port 3000')
+})
+
+
+
+
+
+// let count =0;
+
   // // setInterval(()=>{    
   // //   socket.emit('countUpdated', count)
   // // }, 1000)
@@ -34,12 +57,3 @@ io.on('connection', (socket) => {
   //   socket.emit('countUpdated', count)
   //   io.emit('countUpdated',count)
   // })
-})
-
-
-
-
-
-server.listen(port, () => {
-  console.log('Listening on port 3000')
-})
