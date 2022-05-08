@@ -10,14 +10,19 @@ const messageForm = document.querySelector('form');
 messageForm.addEventListener('submit', (e)=>{
   e.preventDefault()
   const search = e.target.elements.msg;
-  socket.emit('sendMessage', search.value)
+  socket.emit('sendMessage', search.value, (error) =>{
+    if(error){
+      return console.log(error)
+    }
+    console.log('message was delivered')
+  })
   search.value = ''
 })
 
 document.querySelector('#sendLoc').addEventListener('click',() => {  
   if(!navigator.geolocation){
     console.log('location failed...')  
-    return alert('You cant hadle this feature')
+    return alert('geolocation failed')
   }
     navigator.geolocation.getCurrentPosition((position) => {
     console.log(position)
@@ -25,6 +30,8 @@ document.querySelector('#sendLoc').addEventListener('click',() => {
     socket.emit('sendLocation', {
       'lat': position.coords.latitude,
       'long': position.coords.longitude
+    },(error) =>{
+      console.log(error)
     })
   }, () =>{
     console.log('location failed...')
