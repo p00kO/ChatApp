@@ -2,17 +2,15 @@ const express = require('express')
 const path = require('path')
 const http = require('http')
 const Filter = require('bad-words')
-const {generateMessage} = require('./utils/messages')
-const app = express()
-
-const server = http.createServer(app)
 const socketio = require('socket.io')
 
+const {generateMessage} = require('./utils/messages')
+const app = express()
+const server = http.createServer(app)
 const io = socketio(server)
-
 const port = process.env.PORT || 3000
-app.use(express.static(path.join(__dirname,'../public')))
 
+app.use(express.static(path.join(__dirname,'../public')))
 
 app.get('', (req,res) => {
   res.sendFile('index.html')
@@ -25,7 +23,6 @@ io.on('connection', (socket) => {
     socket.emit('message',generateMessage('Welcome'))
     socket.broadcast.to(room).emit('message', generateMessage(`${username} has joined room ${room}`))
   })
-
 
   socket.on('sendMessage', (newMes, callback) =>{
     const filter = new Filter()
