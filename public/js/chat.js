@@ -8,6 +8,10 @@ const messages = document.getElementById('message')
 const messageTemp = document.querySelector('#message-template').innerHTML
 const locationTemp = document.querySelector('#location-template').innerHTML
 
+//Option:
+const { username, room } = Qs.parse(location.search, { ignoreQueryPrefix: true })
+
+
 
 socket.on('message',(mes)=>{
    const html = Mustache.render(messageTemp, {
@@ -62,7 +66,7 @@ sendLoc.addEventListener('click',() => {
   },{maximumAge:60000, timeout:5000, enableHighAccuracy:false})
 })
 
-
+socket.emit('join', { username, room })
 
 
 

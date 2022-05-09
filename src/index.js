@@ -20,10 +20,12 @@ app.get('', (req,res) => {
 
 io.on('connection', (socket) => {
   console.log('New Websocket connection')
-  const mes = "Welcome!"
-  socket.emit('message', generateMessage(mes))
-  
-  socket.broadcast.emit('message', generateMessage('A new user has joined!'))
+  socket.on('join', ({username, room}) => {
+    socket.join(room)
+    socket.emit('message',generateMessage('Welcome'))
+    socket.broadcast.to(room).emit('message', generateMessage(`${username} has joined room ${room}`))
+  })
+
 
   socket.on('sendMessage', (newMes, callback) =>{
     const filter = new Filter()
@@ -50,9 +52,12 @@ server.listen(port, () => {
   console.log('Listening on port 3000')
 })
 
+  // const mes = "Welcome!"
+  // socket.emit('message', generateMessage(mes))  
+  // socket.broadcast.emit('message', generateMessage('A new user has joined!'))
 
-
-
+    // socket.emit, io.emit, socket.broadcast.emit --> users
+    // io.to.emit, socket.broadcast.to.emit --> rooms
 
 // let count =0;
 
