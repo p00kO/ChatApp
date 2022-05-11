@@ -3,6 +3,7 @@ const path = require('path')
 const http = require('http')
 const Filter = require('bad-words')
 const {generateMessage} = require('./utils/messages')
+const { addUser,removeUser,getUser,getUsersInRoom } = require('./utils/users')
 const app = express()
 
 const server = http.createServer(app)
@@ -20,31 +21,46 @@ app.get('', (req,res) => {
 
 io.on('connection', (socket) => {
   console.log('New Websocket connection')
-  socket.on('join', ({username, room}) => {
-    socket.join(room)
-    socket.emit('message',generateMessage('Welcome'))
-    socket.broadcast.to(room).emit('message', generateMessage(`${username} has joined room ${room}`))
+
+  socket.on('join', ({username, room}, callback) => {    
+    const {error, user } = addUser({id:socket.id, username, room })
+    if(error){
+      return callback(error)
+    }
+
+    socket.join(user.room)
+
+    socket.emit('message',generateMessage(user.username, 'Welcome'))
+    socket.broadcast.to(user.room).emit('message', generateMessage(user.username,`${user.username} has joined room ${user.room}`))
+    callback()
   })
 
 
   socket.on('sendMessage', (newMes, callback) =>{
+    
+    const user = getUser(socket.id)
     const filter = new Filter()
     if(filter.isProfane(newMes)){
       return callback('Profanity is not allowed')
     }
-
-    io.emit('message', generateMessage(newMes))
+    
+    //io.emit('message', generateMessage(newMes))
+    io.to(user.room).emit('message', generateMessage(user.username,newMes))
     callback()
   })
   
   socket.on('sendLocation', (newLoc, callback) => {
+    const user = getUser(socket.id)
     let val = `https://google.com/maps?=${newLoc.lat},${newLoc.long}`   
-    io.emit('locationMessage', generateMessage(val))
+    io.to(user.room).emit('locationMessage', generateMessage(user.username,val))
     callback('Location shared')
   })
 
   socket.on('disconnect', () =>{
-    io.emit('message', generateMessage("User just left :-("))
+    const user = removeUser(socket.id)
+    if(user){
+      io.to(user.room).emit('message', generateMessage(user.username,`${user.username} has left`))
+    }    
   })
 })
 
